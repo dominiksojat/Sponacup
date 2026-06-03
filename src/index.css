@@ -263,3 +263,79 @@ img{max-width:100%}
   .match-grid{grid-template-columns:1fr}
   .rules-grid{grid-template-columns:1fr}
 }
+
+/* ── Countdown ── */
+.countdown {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--pitch-mid);
+  background: rgba(26,92,50,.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+/* ── Date groups on predictions page ── */
+.date-group { margin-bottom: 32px; }
+.date-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--pitch);
+  letter-spacing: .04em;
+  padding: 8px 0 10px;
+  border-bottom: 2px solid var(--pitch);
+  margin-bottom: 14px;
+}
+.kickoff-row {
+  font-size: .78rem;
+  color: var(--text-soft);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* ── Prediction progress bar ── */
+.pred-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.pred-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.pred-progress-fill {
+  height: 100%;
+  background: var(--pitch);
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.pred-progress-label {
+  font-size: .8rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* ── Tab count badge ── */
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: var(--pitch);
+  font-size: .65rem;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  border-radius: 99px;
+  margin-left: 5px;
+}
+.tab.active .tab-count {
+  background: var(--gold);
+  color: var(--pitch);
+}

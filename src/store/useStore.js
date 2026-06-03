@@ -1,37 +1,13 @@
 import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import { calcPoints, getOutcome } from "../utils/scoring";
+import { SCHEDULE } from "../data/schedule";
 
-function makeGroupMatches(groups) {
-  const matches = []; let i = 1;
-  Object.entries(groups).forEach(([group, teams]) => {
-    [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]].forEach(([a,b]) => {
-      matches.push({ id:`grp-${group}-${i++}`, stage:"group", group,
-        home_team: teams[a]||"TBD", away_team: teams[b]||"TBD",
-        kickoff:null, home_score:null, away_score:null, status:"upcoming" });
-    });
-  });
-  return matches;
-}
-
-function makeKoMatches() {
-  const rounds = [
-    {round:"R32",round_label:"Round of 32",count:16},
-    {round:"R16",round_label:"Round of 16",count:8},
-    {round:"QF", round_label:"Quarter-finals",count:4},
-    {round:"SF", round_label:"Semi-finals",count:2},
-    {round:"3RD",round_label:"3rd Place Play-off",count:1},
-    {round:"F",  round_label:"Final",count:1},
-  ];
-  const matches = []; let i = 1;
-  rounds.forEach(({round,round_label,count}) => {
-    for(let n=0;n<count;n++) {
-      matches.push({ id:`ko-${round}-${i++}`, stage:"knockout", round, round_label,
-        match_number:n+1, home_team:"TBD", away_team:"TBD",
-        kickoff:null, home_score:null, away_score:null, status:"upcoming" });
-    }
-  });
-  return matches;
+// Auto-lock: a match is locked if kickoff time has passed
+export function isMatchLocked(match) {
+  if (match.status === "finished" || match.status === "live") return true;
+  if (match.kickoff && new Date(match.kickoff) <= new Date()) return true;
+  return false;
 }
 
 export const useStore = create((set, get) => ({
@@ -102,8 +78,17 @@ export const useStore = create((set, get) => ({
   },
 
   seedMatches: async () => {
-    const { groups } = get();
-    const all = [...makeGroupMatches(groups), ...makeKoMatches()];
+    const { matches: existing } = get();
+    const all = SCHEDULE.map(m => {
+      const found = existing.find(e => e.id === m.id);
+      return {
+        ...m,
+        kickoff: found?.kickoff || m.kickoff || null,
+        home_score: null,
+        away_score: null,
+        status: "upcoming",
+      };
+    });
     await supabase.from("matches").upsert(all, { onConflict: "id" });
     get().fetchMatches();
   },
@@ -181,7 +166,8 @@ export const useStore = create((set, get) => ({
     const { user, matches } = get();
     if (!user) return { error: "Not logged in." };
     const match = matches.find(m => m.id === matchId);
-    if (!match || match.status !== "upcoming") return { error: "Match is locked." };
+    if (!match) return { error: "Match not found." };
+    if (isMatchLocked(match)) return { error: "This match is locked — kickoff has passed." };
 
     const payload = {
       user_id: user.id, match_id: matchId, result,
